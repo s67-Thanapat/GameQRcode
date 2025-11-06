@@ -114,16 +114,6 @@
         .eq("id", playerId);
     }
 
-    let lastSent=0;
-    setInterval(()=>{
-      try{
-        if(window.state && window.state.score!==lastSent){
-          lastSent=window.state.score;
-          updateScoreRealtime(window.state.score);
-        }
-      }catch(_){}
-    },2000);
-
     async function fetchHighScore() {
       try {
         const { data, error } = await supabase
@@ -360,7 +350,7 @@
   state.running = false;
   state.showGameOver = true;
 
-  // แสดงหน้า Game Over ก่อน
+  // แสดงหน้า Game Over
   gameOverTextEl.textContent = `Game Over • Score: ${state.score}`;
   overlay.classList.add('show');
   guessBox.style.display = 'block';
@@ -370,19 +360,15 @@
   qrStatusText.textContent = '';
   drawFrame();
 
-  // รอ UI แสดงก่อนแล้วค่อยอัปเดตฐานข้อมูล
   setTimeout(async () => {
     try {
-      // ✅ 1) อัปเดตคะแนนของผู้เล่นคนนี้
-      await supabase.from("players").update({
-        score: state.score,
-        finished_at: new Date().toISOString()
-      }).eq("id", playerId);
+      // ✅ 1) อัปเดตคะแนนตอนเกมจบเท่านั้น
+      await updateScoreRealtime(state.score);
 
-      // ✅ 2) ดึงคะแนนสูงสุดล่าสุดในห้อง
+      // ✅ 2) ดึงคะแนนสูงสุดล่าสุด
       const { data: top } = await supabase
         .from("players")
-        .select("name, score")
+        .select("id, name, score")
         .eq("pin", pin)
         .order("score", { ascending: false })
         .limit(1)
@@ -390,25 +376,21 @@
 
       const topName = top?.name || "-";
       const topScore = top?.score || 0;
+      const topId = top?.id || null;
 
-      // ✅ 3) อัปเดต high score ของห้อง
-      await supabase.from("games")
-        .update({ high_score: topScore })
-        .eq("pin", pin);
-
-      // ✅ 4) ถ้าผู้เล่นนี้คือคนที่ได้สกอร์สูงสุด → บันทึกชื่อไว้
-      if (state.score >= topScore) {
-        console.log(`🏆 ${playerName} ทำลายสถิติใหม่ ${topScore} คะแนน!`);
+      // ✅ 3) ถ้าคนนี้ได้สกอร์สูงสุด → อัปเดตตาราง games
+      if (topId === playerId && state.score >= topScore) {
+        console.log(`🏆 ${playerName} ทำลายสถิติใหม่ ${state.score} คะแนน!`);
         await supabase.from("games")
           .update({
-            high_score: topScore,
-            record_holder: playerName, // ต้องมีคอลัมน์นี้ในตาราง games
+            high_score: state.score,
+            record_holder: playerName,
             updated_at: new Date().toISOString()
           })
           .eq("pin", pin);
       }
 
-      // ✅ 5) อัปเดต high score บนหน้าเกม (ฝั่ง client)
+      // ✅ 4) แสดง High Score ล่าสุดบนจอ
       const el = document.getElementById('hiscore');
       if (el) el.textContent = topScore;
 
@@ -417,6 +399,7 @@
     }
   }, 800);
 }
+
 
 
   function addReflectFlashStrong(cx, cy, baseR){
