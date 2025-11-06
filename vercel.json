@@ -1,0 +1,27 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
+    {
+      "src": "/game",
+      "dest": "/game.html"
+    },
+    {
+      "src": "/game.html",
+      "has": [{ "type": "query", "key": "pin" }],
+      "dest": "/game.html"
+    },
+    {
+      "src": "/leaderboard",
+      "dest": "/leaderboard.html"
+    },
+    {
+      "src": "/leaderboard.html",
+      "dest": "/leaderboard.html"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
+  ]
+}

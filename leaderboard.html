@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏆 Q-ARE Code Breaker • Leaderboard</title>
+<style>
+  #qrFloating {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
+}
+
+#btnShowQR {
+  background: #7c3aed;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px 22px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transition: .2s;
+}
+
+#btnShowQR:hover {
+  background: #6d28d9;
+  transform: translateY(-2px);
+}
+
+#qrBox {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 16px;
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  animation: fadeUp .4s ease;
+}
+
+#qrTimer {
+  font-weight: 800;
+  font-size: 20px;
+  color: #facc15;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(250,204,21,0.8);
+  animation: pulseTime 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulseTime {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+  #qrTimer {
+  font-weight: 800;
+  font-size: 20px;
+  color: #facc15;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(250,204,21,0.8);
+  animation: pulseTime 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulseTime {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+  #confettiCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+  #musicControl {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 999;
+}
+#musicControl button {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: .2s;
+}
+#musicSelect {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 8px;
+  backdrop-filter: blur(4px);
+  transition: .2s;
+}
+#musicSelect:hover {
+  background: rgba(255,255,255,0.25);
+}
+option {
+  color: #000;
+}
+
+#musicControl button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+  #qrWarning {
+  background: rgba(250,204,21,0.15);
+  color: #fde047;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 16px;
+  line-height: 1.4em;
+  border: 1px solid rgba(250,204,21,0.3);
+  animation: fadeUp .4s ease;
+}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:radial-gradient(circle at center,#1e1b4b,#0f0f25 80%);
+  color:#fff;
+  margin:0;
+  text-align:center;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:30px;
+}
+h1{font-size:2.4em;font-weight:900;text-shadow:0 2px 10px rgba(0,0,0,.5);margin-bottom:8px;}
+#pinDisplay{
+  display:inline-block;
+  background:#fff;
+  color:#111;
+  font-size:40px;
+  font-weight:900;
+  padding:10px 28px;
+  border-radius:12px;
+  letter-spacing:4px;
+  margin:16px 0;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+#highscoreBox{
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;
+  padding:10px 20px;
+  margin-bottom:24px;
+  font-weight:700;
+  font-size:22px;
+}
+#highscore{
+  font-size:30px;
+  color:#facc15;
+  text-shadow:0 0 10px rgba(250,204,21,0.6);
+}
+#newRecord {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #facc15;
+  text-shadow: 0 0 10px rgba(250,204,21,0.9);
+  animation: popUp 1s ease, fadeOut 3s ease 24s forwards;
+
+}
+
+@keyframes popUp {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* เอฟเฟกต์กล่องสั่นเบา ๆ ตอนทำลายสถิติ */
+.highscore-glow {
+  animation: glowBox 1s ease-in-out infinite alternate;
+}
+@keyframes glowBox {
+  from { box-shadow: 0 0 10px rgba(250,204,21,0.4); }
+  to { box-shadow: 0 0 25px rgba(250,204,21,1); }
+}
+
+
+button{
+  background:#7c3aed;
+  border:none;border-radius:10px;
+  color:#fff;padding:10px 18px;
+  font-size:16px;cursor:pointer;
+  font-weight:700;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+  transition:.2s;
+  margin:5px;
+}
+button:hover{background:#6d28d9;transform:translateY(-2px)}
+
+/* ─── Podium ─────────────────────────────── */
+#podium{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:30px;
+  height:280px;
+  margin-top:20px;
+  transition:all .5s ease;
+}
+.podium-step{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  width:110px;
+  border-radius:12px 12px 0 0;
+  position:relative;
+  transition:transform .5s ease, height .5s ease;
+}
+.rank-num{
+  position:absolute;
+  top:-40px;
+  width:60px;height:60px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4em;font-weight:900;
+  color:#fff;
+  text-shadow:0 2px 6px rgba(0,0,0,.3);
+}
+.rank1{background:#facc15}
+.rank2{background:#d1d5db}
+.rank3{background:#f97316}
+.podium1{background:#7e22ce;}
+.podium2{background:#6b21a8;}
+.podium3{background:#581c87;}
+.name{font-weight:800;font-size:1.1em;margin-top:6px;}
+.score{font-size:1em;opacity:.85;}
+
+/* ─── Table ─────────────────────────────── */
+table{
+  margin:24px auto;
+  border-collapse:collapse;
+  width:90%;
+  max-width:420px;
+  background:#111827;
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{padding:12px;border-bottom:1px solid #1f2937;}
+th{background:#6d28d9;color:#fff;}
+tr:nth-child(even){background:#1e1e2f;}
+
+@keyframes bounceUp{
+  0%{transform:translateY(40px) scale(0.9);opacity:0;}
+  60%{transform:translateY(-6px) scale(1.05);opacity:1;}
+  100%{transform:translateY(0) scale(1);}
+}
+.bounce{animation:bounceUp .6s ease;}
+@keyframes glow{
+  0%{box-shadow:0 0 0 rgba(255,255,255,0);}
+  50%{box-shadow:0 0 25px rgba(255,255,255,.9);}
+  100%{box-shadow:0 0 0 rgba(255,255,255,0);}
+}
+.glow{animation:glow 1s ease;}
+
+/* ✅ Floating QR Panel */
+#qrFloating {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
+}
+
+#qrFloating button {
+  background: #7c3aed;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transition: .2s;
+}
+#qrFloating button:hover {
+  background: #6d28d9;
+  transform: translateY(-2px);
+}
+
+#qrBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 16px;
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  animation: fadeUp .4s ease;
+}
+#qrBox img {
+  width: 240px;
+  height: 240px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+#qrBox span {
+  font-weight: 700;
+  font-size: 30px;
+  color: #facc15;
+  text-shadow: 0 0 8px rgba(250,204,21,0.6);
+}
+
+@keyframes fadeUp {
+  0% {opacity:0; transform:translateY(20px);}
+  100% {opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+<body>
+  <h1>🏆 Ranking</h1>
+  <div id="musicControl">
+    <select id="musicSelect">
+  <option value="Tq43oWuG1ks">🎵 เพลง 1</option>
+  <option value="fRzddwmE_to">🎶 เพลง 2</option>
+  <option value="loXNquvRlVY">💃 เพลงแดนซ์</option>
+</select>
+
+    <button id="btnMusic">🔈 เปิดเพลง</button>
+  </div>
+
+
+  <div>
+    <button id="btnNewPin">🎲 สุ่มรหัสห้องใหม่</button>
+  </div>
+  <div id="pinDisplay">PIN: -</div>
+  <div id="highscoreBox">
+  สถิติสูงสุด: <span id="highscore">0</span> คะแนน
+  <div id="newRecord" style="display:none;"></div>
+</div>
+
+
+  <div id="podium">
+    <div id="podium2" class="podium-step podium2" style="height:160px">
+      <div class="rank-num rank2">2</div>
+      <div class="name" id="name2">-</div>
+      <div class="score" id="score2">0</div>
+    </div>
+    <div id="podium1" class="podium-step podium1" style="height:200px">
+      <div class="rank-num rank1">1</div>
+      <div class="name" id="name1">-</div>
+      <div class="score" id="score1">0</div>
+    </div>
+    <div id="podium3" class="podium-step podium3" style="height:120px">
+      <div class="rank-num rank3">3</div>
+      <div class="name" id="name3">-</div>
+      <div class="score" id="score3">0</div>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>อันดับ</th><th>ชื่อ</th><th>คะแนน</th></tr></thead>
+    <tbody id="board"></tbody>
+  </table>
+
+  <!-- ✅ Floating QR มุมขวาล่าง -->
+<div id="qrFloating">
+  <button id="btnShowQR">แสดง / ซ่อน QR</button>
+
+  <div id="qrBox" style="display:none;">
+    <div id="qrTimer">⏱ เหลือเวลา: <span id="timeLeft">60</span> วินาที</div>
+    
+    <img src="/QrGame.png" alt="QR Code">
+    <p id="qrWarning">⚠️ โปรดใส่เลขห้องให้ถูกต้อง<br>และชื่อไม่สามารถซ้ำกันได้</p>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from "./supabase.js";
+
+const pinDisplay=document.getElementById("pinDisplay");
+const board=document.getElementById("board");
+const btnNew=document.getElementById("btnNewPin");
+const highscoreEl=document.getElementById("highscore");
+
+
+
+let currentPin=null;
+let sub=null;
+let refreshTimer=null;
+// 🎵 เสียงพื้นหลังและเสียงฉลอง
+let bgMusic = document.getElementById("bgMusic");
+const cheerSound = document.getElementById("cheerSound");
+
+
+
+
+// โหลด High Score ล่าสุด
+async function loadHighScore(){
+  const { data } = await supabase
+    .from("games")
+    .select("high_score")
+    .order("created_at",{ascending:false})
+    .limit(1)
+    .single();
+  highscoreEl.textContent = data?.high_score || 0;
+}
+
+function randomPin(){return Math.floor(1000+Math.random()*9000).toString();}
+
+async function createNewRoom() {
+  const { data: lastGame } = await supabase
+    .from("games")
+    .select("high_score")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  const keepHigh = lastGame?.high_score || 0;
+  await supabase
+    .from("players")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+
+  const newPin = randomPin();
+  await supabase.from("games").insert({ pin: newPin, high_score: keepHigh });
+
+  currentPin = newPin;
+  pinDisplay.textContent = "PIN: " + currentPin;
+ 
+  // 🔒 ถ้า QR ยังเปิดอยู่ให้ปิดทันที
+qrBox.style.display = "none";
+btnShowQR.style.display = "block";
+
+
+  // ❌ ไม่ต้องยุ่งกับ QR หรือจับเวลา
+  subscribeToRoom(currentPin);
+  await refresh(currentPin);
+  loadHighScore();
+}
+
+
+
+async function subscribeToRoom(pin){
+  if(sub){sub.unsubscribe();}
+  if(refreshTimer){clearInterval(refreshTimer);}
+  
+  const { data } = await supabase.from("players").select("*").eq("pin",pin).order("score",{ascending:false});
+  render(data||[]);
+  
+  sub = supabase.channel("leader-"+pin)
+    .on("postgres_changes",{event:"*",schema:"public",table:"players",filter:`pin=eq.${pin}`},payload=>refresh(pin))
+    .subscribe();
+
+  refreshTimer = setInterval(()=>refresh(pin), 2000);
+}
+// 🎊 ฟังก์ชันโปรย confetti
+function launchConfetti(duration = 5000) {
+  const canvas = document.getElementById("confettiCanvas");
+  const ctx = canvas.getContext("2d");
+  const confettiCount = 150;
+  const confetti = [];
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // สร้างกระดาษสีสุ่ม
+  for (let i = 0; i < confettiCount; i++) {
+    confetti.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
+      dx: Math.random() * 2 - 1,
+      dy: Math.random() * 3 + 2,
+      color: `hsl(${Math.random() * 360},100%,60%)`,
+    });
+  }
+
+  let start = performance.now();
+  let animationFrame;
+
+  function draw(time) {
+    const elapsed = time - start;
+    if (elapsed > duration) {
+      cancelAnimationFrame(animationFrame);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let p of confetti) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, 2 * Math.PI);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.y > canvas.height) p.y = -10;
+    }
+
+    animationFrame = requestAnimationFrame(draw);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+
+async function refresh(pin) {
+  const { data } = await supabase
+    .from("players")
+    .select("*")
+    .eq("pin", pin)
+    .order("score", { ascending: false });
+  render(data || []);
+
+  const highNow = data && data.length ? Math.max(...data.map(p => p.score ?? 0)) : 0;
+  const highOld = parseInt(highscoreEl.textContent, 10) || 0;
+
+  if (highNow > highOld) {
+  highscoreEl.textContent = highNow;
+
+  // 🔇 หยุดเพลง YouTube แบบบังคับ + รอจนหยุดจริง
+  let wasPlaying = false;
+  let resumeTime = 0;
+  if (playerReady && player && typeof player.getPlayerState === "function") {
+    try {
+      const state = player.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        wasPlaying = true;
+        resumeTime = player.getCurrentTime();
+        player.pauseVideo();
+        // รอจนกว่าสถานะจะเป็น paused (กันหยุดไม่ทัน)
+        let tries = 20;
+        while (tries-- && player.getPlayerState() !== YT.PlayerState.PAUSED) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+        console.log("⏸ หยุดเพลงพื้นหลังชั่วคราวตอนฉลอง");
+      }
+    } catch(e) { console.warn(e); }
+  }
+
+    // ✅ เล่นเสียงฉลอง
+    cheerSound.currentTime = 0;
+    cheerSound.play();
+
+    // 🎉 เอฟเฟกต์โปรยกระดาษ
+    launchConfetti(26000);
+
+    // 🏅 ข้อความประกาศ
+    const breaker = data.find(p => p.score === highNow)?.name || "ไม่ทราบชื่อ";
+    const newRecordEl = document.getElementById("newRecord");
+    newRecordEl.innerHTML = `🎉 ทำลายสถิติใหม่โดย <b>${breaker}</b> !`;
+    newRecordEl.style.display = "block";
+
+    const box = document.getElementById("highscoreBox");
+    box.classList.add("highscore-glow");
+
+    // 🎉 กลับมาเล่นต่อจากเดิมเมื่อเสียงฉลอง "จบจริง"
+  cheerSound.onended = () => {
+    if (wasPlaying && playerReady && player) {
+      setTimeout(() => {
+        try {
+          player.seekTo(resumeTime, true);
+          player.playVideo();
+          console.log("🎵 เล่นเพลงพื้นหลังต่อจากเดิม");
+        } catch(e) { console.warn(e); }
+      }, 400); // เว้นจังหวะกันชนเสียง
+    }
+  };
+
+    // 🔄 ลบเอฟเฟกต์หลัง 26 วิ
+    setTimeout(() => {
+      newRecordEl.style.display = "none";
+      box.classList.remove("highscore-glow");
+    }, 26000);
+
+    // 💾 บันทึก highscore
+    await supabase.from("games").update({ high_score: highNow }).eq("pin", pin);
+  }
+}
+
+
+
+function render(rows){
+  if(!rows||rows.length===0){
+    ["1","2","3"].forEach(i=>{
+      document.getElementById("name"+i).textContent="-";
+      document.getElementById("score"+i).textContent="0";
+    });
+    board.innerHTML=`<tr><td colspan="3" style="opacity:.6">ยังไม่มีผู้เล่น</td></tr>`;
+    return;
+  }
+
+  const podium=[rows[0],rows[1],rows[2]];
+  const heights=[200,160,120];
+  ["1","2","3"].forEach((i,idx)=>{
+    const el=document.getElementById("podium"+i);
+    const p=podium[idx];
+    const nameEl=document.getElementById("name"+i);
+    const scoreEl=document.getElementById("score"+i);
+    if(p){
+      const s=p.score??0;
+      nameEl.textContent=p.name||"-";
+      scoreEl.textContent=s;
+      el.style.height=heights[idx]+"px";
+      el.classList.add("bounce","glow");
+      setTimeout(()=>el.classList.remove("bounce","glow"),800);
+    }else{
+      nameEl.textContent="-";scoreEl.textContent="0";
+    }
+  });
+
+  const others=rows.slice(3);
+  board.innerHTML = others.length
+    ? others.map((r,i)=>`<tr><td>${i+4}</td><td>${r.name}</td><td>${r.score??0}</td></tr>`).join("")
+    : `<tr><td colspan="3" style="opacity:.6">ไม่มีผู้เล่นเพิ่มเติม</td></tr>`;
+}
+
+btnNew.addEventListener("click", async ()=>{
+  const ok = confirm("⚠️ การสุ่มรหัสใหม่จะล้างข้อมูลผู้เล่นทั้งหมด!\n\nคุณต้องการสร้างห้องใหม่แน่หรือไม่?");
+  if(ok){
+    await createNewRoom();
+  }
+});
+
+loadHighScore();
+
+
+</script>
+
+
+<!-- 🎉 เสียงเอฟเฟกต์ตอนทำลายสถิติ -->
+<audio id="cheerSound" src="cheer.mp3"></audio>
+<!-- 🎊 พื้นที่สำหรับโปรย confetti -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- 🎵 YouTube Player (เล่นเฉพาะเสียง) -->
+<div id="yt-player" style="width:0;height:0;visibility:hidden;"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+let player;
+let playerReady = false;
+let musicPlaying = false;
+const btnMusic = document.getElementById("btnMusic");
+const musicSelect = document.getElementById("musicSelect");
+
+// 🔒 ปิดปุ่มไว้ก่อน
+btnMusic.disabled = true;
+btnMusic.textContent = "⏳ โหลดเพลง...";
+
+// ▶️ ฟังก์ชันสร้าง player
+function createYouTubePlayer() {
+  console.log("🎬 พยายามสร้าง YouTube player...");
+  player = new YT.Player('yt-player', {
+    height: '0',
+    width: '0',
+    videoId: 'Tq43oWuG1ks',
+    playerVars: {
+      autoplay: 0,
+      loop: 1,
+      playlist: 'Tq43oWuG1ks',
+      controls: 0,
+      modestbranding: 1,
+      rel: 0
+    },
+    events: {
+      onReady: (event) => {
+        playerReady = true;
+        event.target.setVolume(40);
+        btnMusic.disabled = false;
+        btnMusic.textContent = "🔈 เปิดเพลง";
+        console.log("✅ YouTube Player พร้อมใช้งานแล้ว");
+      },
+      onError: (err) => {
+        console.warn("⚠️ โหลด YouTube player ล้มเหลว:", err.data);
+        retryYouTubePlayer();
+      }
+    }
+  });
+}
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('yt-player', {
+    height: '0',
+    width: '0',
+    videoId: 'dQw4w9WgXcQ',
+    playerVars: { autoplay: 0, loop: 1, playlist: 'dQw4w9WgXcQ', controls: 0, showinfo: 0, modestbranding: 1, rel: 0 },
+    events: {
+      onReady: (event) => {
+        playerReady = true;
+        event.target.setVolume(40);
+        console.log("✅ YouTube Player พร้อมใช้งานแล้ว");
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) {
+          musicPlaying = true;
+          btnMusic.textContent = "🔊 ปิดเพลง";
+        } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+          musicPlaying = false;
+          btnMusic.textContent = "🔈 เปิดเพลง";
+        }
+      }
+    }
+  });
+}
+
+
+// 🕐 ถ้าโหลดเกิน 5 วิแล้วยังไม่พร้อม ให้ลองใหม่
+let retryCount = 0;
+function retryYouTubePlayer() {
+  if (playerReady || retryCount >= 3) return; // จำกัด 3 รอบ
+  retryCount++;
+  btnMusic.textContent = `⚠️ โหลดเพลงไม่สำเร็จ (กำลังลองใหม่รอบ ${retryCount})`;
+  console.log(`🔄 ลองโหลดซ้ำรอบที่ ${retryCount}...`);
+  setTimeout(createYouTubePlayer, 3000);
+}
+
+// 🕐 fallback เริ่มต้น
+setTimeout(() => {
+  if (!playerReady) retryYouTubePlayer();
+}, 5000);
+
+// ▶️ ปุ่มเปิด/ปิดเพลง
+btnMusic.addEventListener("click", () => {
+  if (!playerReady) {
+    alert("⏳ กำลังโหลดเพลงจาก YouTube... กรุณารอสักครู่");
+    return;
+  }
+  if (musicPlaying) {
+    player.pauseVideo();
+    musicPlaying = false;
+    btnMusic.textContent = "🔈 เปิดเพลง";
+  } else {
+    player.playVideo();
+    musicPlaying = true;
+    btnMusic.textContent = "🔊 ปิดเพลง";
+  }
+});
+
+// 🎚️ เปลี่ยนเพลง
+musicSelect.addEventListener("change", () => {
+  if (!playerReady) return;
+  const newId = musicSelect.value;
+  player.loadVideoById(newId);
+  player.setVolume(40);
+  if (!musicPlaying) player.pauseVideo();
+});
+
+
+const btnShowQR = document.getElementById("btnShowQR");
+const qrBox = document.getElementById("qrBox");
+const timeDisplay = document.getElementById("timeLeft");
+
+let countdown = 60;
+let timer = null;
+let qrVisible = false;
+
+// ▶️ เมื่อกดปุ่มแสดง/ปิด QR
+btnShowQR.addEventListener("click", () => {
+  if (qrVisible) {
+    // 🔒 ถ้า QR เปิดอยู่ → ปิด + หยุดเวลา
+    qrBox.style.display = "none";
+    clearInterval(timer);
+    qrVisible = false;
+  } else {
+    // ✅ ถ้า QR ปิดอยู่ → เปิด + รีเซ็ตเวลา
+    qrBox.style.display = "flex";
+    startCountdown();
+    qrVisible = true;
+  }
+});
+
+function startCountdown() {
+  if (timer) clearInterval(timer);
+  countdown = 60;
+  timeDisplay.textContent = countdown;
+
+  timer = setInterval(() => {
+    countdown--;
+    timeDisplay.textContent = countdown;
+
+    if (countdown <= 0) {
+      clearInterval(timer);
+      qrBox.style.display = "none"; // ❌ ปิด QR
+      qrVisible = false;
+    }
+  }, 1000);
+}
+
+
+// ▶️ เริ่มจับเวลาทันทีเมื่อโหลดหน้า
+startCountdown();
+</script>
+
+</body>
+</html>
