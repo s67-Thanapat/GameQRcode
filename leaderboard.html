@@ -350,9 +350,15 @@ tr:nth-child(even){background:#1e1e2f;}
   <div id="musicControl">
     <select id="musicSelect">
   <option value="Tq43oWuG1ks">🎵 เพลง 1</option>
-  <option value="fRzddwmE_to">🎶 เพลง 2</option>
+  <option value="O_yPcpwQNJ4">🎶 Body slam</option>
+  <option value="OnY-A1uUMWU">🔥 Silly Fool </option>
+  <option value="9opsoG_6U8Q"> T_T เพลงเศร้า </option>
   <option value="loXNquvRlVY">💃 เพลงแดนซ์</option>
+  <option value="k2u_0IAOmf8">💃 เพลงแดนซ์2</option>
+  
 </select>
+
+
 
     <button id="btnMusic">🔈 เปิดเพลง</button>
   </div>
@@ -360,6 +366,7 @@ tr:nth-child(even){background:#1e1e2f;}
 
   <div>
     <button id="btnNewPin">🎲 สุ่มรหัสห้องใหม่</button>
+    <button id="btnResetHigh">🧹 รีเซ็ตสถิติสูงสุด</button>
   </div>
   <div id="pinDisplay">PIN: -</div>
   <div id="highscoreBox">
@@ -396,7 +403,7 @@ tr:nth-child(even){background:#1e1e2f;}
   <button id="btnShowQR">แสดง / ซ่อน QR</button>
 
   <div id="qrBox" style="display:none;">
-    <div id="qrTimer">⏱ เหลือเวลา: <span id="timeLeft">60</span> วินาที</div>
+    <span>Scan Me</span>
     
     <img src="/QrGame.png" alt="QR Code">
     <p id="qrWarning">⚠️ โปรดใส่เลขห้องให้ถูกต้อง<br>และชื่อไม่สามารถซ้ำกันได้</p>
@@ -644,14 +651,41 @@ function render(rows){
     : `<tr><td colspan="3" style="opacity:.6">ไม่มีผู้เล่นเพิ่มเติม</td></tr>`;
 }
 
-btnNew.addEventListener("click", async ()=>{
+btnNew.addEventListener("click", async ()=> {
   const ok = confirm("⚠️ การสุ่มรหัสใหม่จะล้างข้อมูลผู้เล่นทั้งหมด!\n\nคุณต้องการสร้างห้องใหม่แน่หรือไม่?");
   if(ok){
     await createNewRoom();
   }
 });
 
+// 🧹 รีเซ็ตสถิติสูงสุด: ล้างทั้งตาราง games แล้วเพิ่ม high_score = 555
+const btnResetHigh = document.getElementById("btnResetHigh");
+btnResetHigh.addEventListener("click", async () => {
+  const ok = confirm("⚠️ ต้องการรีเซ็ตสถิติสูงสุดทั้งหมด และตั้งค่าใหม่เป็น 555 ใช่หรือไม่?");
+  if (!ok) return;
+
+  try {
+    // 1️⃣ ลบข้อมูลทั้งหมดในตาราง games (ไม่ต้องใช้ id)
+    const { error: delErr } = await supabase.from("games").delete().gte("high_score", 0);
+    if (delErr) throw delErr;
+
+    // 2️⃣ เพิ่มข้อมูลใหม่ 1 แถว (high_score = 555)
+    const { error: insErr } = await supabase.from("games").insert([{ pin: "0000", high_score: 555 }]);
+    if (insErr) throw insErr;
+
+    highscoreEl.textContent = "555";
+    alert("✅ รีเซ็ตสถิติสูงสุดเรียบร้อยแล้ว!");
+  } catch (err) {
+    console.error("🔥 SUPABASE ERROR:", err);
+    alert("❌ เกิดข้อผิดพลาดในการรีเซ็ตสถิติสูงสุด");
+  }
+});
+
+
+
 loadHighScore();
+
+
 
 
 </script>
@@ -774,50 +808,16 @@ musicSelect.addEventListener("change", () => {
   if (!musicPlaying) player.pauseVideo();
 });
 
-
+// ▶️ แสดง / ซ่อน QR แบบธรรมดา (ไม่มีจับเวลา)
 const btnShowQR = document.getElementById("btnShowQR");
 const qrBox = document.getElementById("qrBox");
-const timeDisplay = document.getElementById("timeLeft");
-
-let countdown = 60;
-let timer = null;
 let qrVisible = false;
 
-// ▶️ เมื่อกดปุ่มแสดง/ปิด QR
 btnShowQR.addEventListener("click", () => {
-  if (qrVisible) {
-    // 🔒 ถ้า QR เปิดอยู่ → ปิด + หยุดเวลา
-    qrBox.style.display = "none";
-    clearInterval(timer);
-    qrVisible = false;
-  } else {
-    // ✅ ถ้า QR ปิดอยู่ → เปิด + รีเซ็ตเวลา
-    qrBox.style.display = "flex";
-    startCountdown();
-    qrVisible = true;
-  }
+  qrVisible = !qrVisible;
+  qrBox.style.display = qrVisible ? "flex" : "none";
 });
 
-function startCountdown() {
-  if (timer) clearInterval(timer);
-  countdown = 60;
-  timeDisplay.textContent = countdown;
-
-  timer = setInterval(() => {
-    countdown--;
-    timeDisplay.textContent = countdown;
-
-    if (countdown <= 0) {
-      clearInterval(timer);
-      qrBox.style.display = "none"; // ❌ ปิด QR
-      qrVisible = false;
-    }
-  }, 1000);
-}
-
-
-// ▶️ เริ่มจับเวลาทันทีเมื่อโหลดหน้า
-startCountdown();
 </script>
 
 </body>
